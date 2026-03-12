@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Weekly Focus & Rewards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Print Specific Styles */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0 !important; }
+            .printable-area { 
+                width: 210mm; 
+                height: 297mm;
+                box-shadow: none !important; 
+                margin: 0 auto !important;
+                padding: 10mm !important;
+                border: none !important;
+            }
+            .date-input { border-bottom: 2px solid #000 !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .section-break { page-break-inside: avoid; }
+        }
+
+        /* Custom Checkbox for Print */
+        .checkbox-box {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #374151;
+            border-radius: 4px;
+            display: inline-block;
+            background: #fff;
+        }
+
+        .gray-cell { background-color: #f3f4f6; }
+        
+        .printable-area {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            margin: 0 auto;
+            padding: 25px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        table { border-collapse: collapse; width: 100%; margin-bottom: 1.5rem; }
+        th, td { border: 1.5px solid #1f2937; text-align: center; padding: 8px 4px; }
+        th { background-color: #f9fafb; font-weight: 700; color: #111827; font-size: 0.75rem; text-transform: uppercase; }
+        
+        .type-label-focus { color: #059669; border-color: #059669; background-color: #ecfdf5; }
+        .type-label-reward { color: #7c3aed; border-color: #7c3aed; background-color: #f5f3ff; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-8">
+
+    <!-- Header (No-Print) -->
+    <div class="no-print max-w-5xl mx-auto mb-6 flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200 gap-4">
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-gray-800 leading-tight">Weekly Focus Builder</h2>
+                <p class="text-xs text-gray-500 font-mono">Local Storage Mode</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="window.print()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Print Checklist
+            </button>
+        </div>
+    </div>
+
+    <!-- Management Panel (No-Print) -->
+    <div class="no-print max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
+        <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">Plan Your Week</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div class="col-span-1 md:col-span-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Task Name</label>
+                <input type="text" id="taskName" placeholder="e.g., Chanter Practice" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Duration (Optional)</label>
+                <input type="text" id="taskDuration" placeholder="e.g., 30 mins" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Task Category</label>
+                <select id="taskGroup" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+                    <option value="focus">🌱 Daily Focus (Essential)</option>
+                    <option value="reward">⚔️ Quest Goal (Reward Task)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Goal (Days)</label>
+                <input type="number" id="taskGoal" min="1" max="7" value="7" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Time of Day</label>
+                <select id="taskTime" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+                    <option value="Morning">☀️ Morning</option>
+                    <option value="Anytime" selected>🕒 Anytime</option>
+                    <option value="Evening">🌙 Evening</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Active Days</label>
+                <div class="flex flex-wrap gap-2 pt-1">
+                    <label class="inline-flex items-center px-2 py-1 bg-gray-50 border rounded-md cursor-pointer text-xs"><input type="checkbox" id="day0" checked class="mr-1">Sat</label>
+                    <label class="inline-flex items-center px-2 py-1 bg-gray-50 border rounded-md cursor-pointer text-xs"><input type="checkbox" id="day1" checked class="mr-1">Sun</label>
+                    <label class="inline-flex items-center px-2 py-1 bg-gray-50 border rounded-md cursor-pointer text-xs"><input type="checkbox" id="day2" checked class="mr-1">Mon</label>
+                    <label class="inline-flex items-center px-2 py-1 bg-gray-50 border rounded-md cursor-pointer text-xs"><input type="checkbox" id="day3" checked class="mr-1">Tue</label>
+                    <label class="inline-flex items-center px-2 py-1 bg-gray-50 border rounded-md cursor-pointer text-xs"><input type="checkbox" id="day4" checked class="mr-1">Wed</label>
+                    <label class="inline-flex items-center px-2 py-1 bg-gray-50 border rounded-md cursor-pointer text-xs"><input type="checkbox" id="day5" checked class="mr-1">Thu</label>
+                    <label class="inline-flex items-center px-2 py-1 bg-gray-50 border rounded-md cursor-pointer text-xs"><input type="checkbox" id="day6" checked class="mr-1">Fri</label>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="addTask()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-2.5 rounded-lg font-bold transition shadow-md">
+            Add to My Plan
+        </button>
+    </div>
+
+    <!-- Printable Canvas -->
+    <div class="printable-area">
+        <div class="text-center mb-6">
+            <h1 class="text-4xl font-black uppercase tracking-tighter text-gray-900 mb-1 italic">My Weekly Focus</h1>
+            <div class="flex justify-center items-center gap-2 text-lg font-semibold text-gray-600 mb-4">
+                <span>Week Starting Saturday:</span>
+                <input type="text" placeholder="DD / MM / YYYY" class="date-input border-b-2 border-gray-300 focus:border-indigo-500 outline-none px-2 text-center w-44 bg-transparent">
+            </div>
+            
+            <div class="max-w-xl mx-auto border-2 border-dashed border-indigo-400 bg-indigo-50 px-4 py-3 rounded-xl">
+                <p class="text-indigo-800 font-bold text-sm">
+                    🚀 <span class="uppercase">The Game Master's Challenge:</span> Completing your Quest Goals this week unlocks 60 minutes of Video Game Time this weekend!
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 1: Daily Focus -->
+        <div class="section-break mb-8">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="bg-emerald-600 text-white px-3 py-1 rounded-md text-xs font-black uppercase tracking-widest italic">🌱 Daily Focus</div>
+                <span class="text-xs text-emerald-700 font-medium">Habits that help me stay sharp and organized.</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="w-1/3 py-3">Focus Item</th>
+                        <th class="w-10">Goal</th>
+                        <th class="w-10">Sat</th>
+                        <th class="w-10">Sun</th>
+                        <th class="w-10">Mon</th>
+                        <th class="w-10">Tue</th>
+                        <th class="w-10">Wed</th>
+                        <th class="w-10">Thu</th>
+                        <th class="w-10">Fri</th>
+                        <th class="no-print w-12">Edit</th>
+                    </tr>
+                </thead>
+                <tbody id="focusTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Section 2: Quest Goals -->
+        <div class="section-break">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="bg-purple-600 text-white px-3 py-1 rounded-md text-xs font-black uppercase tracking-widest italic">⚔️ Quest Goals</div>
+                <span class="text-xs text-purple-700 font-medium">Challenges that earn Video Game Rewards!</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="w-1/3 py-3">Quest Item</th>
+                        <th class="w-10">Goal</th>
+                        <th class="w-10">Sat</th>
+                        <th class="w-10">Sun</th>
+                        <th class="w-10">Mon</th>
+                        <th class="w-10">Tue</th>
+                        <th class="w-10">Wed</th>
+                        <th class="w-10">Thu</th>
+                        <th class="w-10">Fri</th>
+                        <th class="no-print w-12">Edit</th>
+                    </tr>
+                </thead>
+                <tbody id="rewardTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="mt-6 pt-6 border-t border-gray-200 grid grid-cols-2 gap-8">
+            <div class="flex flex-col gap-3">
+                <p class="font-black text-gray-800 text-[10px] uppercase tracking-[0.2em]">Notes & Achievements</p>
+                <div class="flex-grow border-2 border-gray-100 rounded-xl p-3 text-xs text-gray-400 italic">
+                    What went well this week? What did you discover?
+                </div>
+            </div>
+            <div class="flex flex-col justify-end text-right">
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <p id="quote-text" class="text-gray-700 font-medium italic mb-2 text-sm leading-relaxed"></p>
+                    <p id="quote-author" class="font-black text-indigo-600 text-[10px] uppercase tracking-widest"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="no-print fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl transition-all duration-300 opacity-0 pointer-events-none z-50"></div>
+
+    <script>
+        // --- Local State Management ---
+        let tasks = JSON.parse(localStorage.getItem('myWeeklyFocusTasks')) || [];
+
+        const quoteLibrary = [
+            { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Unknown" },
+            { text: "Quality is not an act, it is a habit.", author: "Aristotle" },
+            { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+            { text: "It’s not what we do once in a while that shapes our lives. It’s what we do consistently.", author: "Unknown" },
+            { text: "Motivation is what gets you started. Habit is what keeps you going.", author: "Jim Ryun" },
+            { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Unknown" },
+            { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
+            { text: "Small steps in the right direction can turn out to be the biggest step of your life.", author: "Unknown" },
+            { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+            { text: "Consistency is more important than perfection.", author: "Unknown" },
+            { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+            { text: "Your habits will determine your future.", author: "Jack Canfield" },
+            { text: "The successful man is the average man, with laser-like focus.", author: "Bruce Lee" },
+            { text: "Focus on being productive instead of busy.", author: "Unknown" },
+            { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+            { text: "You don't have to be great to start, but you have to start to be great.", author: "Unknown" },
+            { text: "Energy and persistence conquer all things.", author: "Benjamin Franklin" },
+            { text: "The difference between who you are and who you want to be is what you do.", author: "Unknown" },
+            { text: "Winning is a habit. Unfortunately, so is losing.", author: "Unknown" },
+            { text: "If you want to change your life, change your habits.", author: "Unknown" },
+            { text: "Small daily improvements are the key to staggering long-term results.", author: "Unknown" },
+            { text: "The only limit to our realization of tomorrow will be our doubts of today.", author: "Franklin D. Roosevelt" },
+            { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+            { text: "Action is the foundational key to all success.", author: "Pablo Picasso" },
+            { text: "Don't let what you cannot do interfere with what you can do.", author: "John Wooden" },
+            { text: "Hard work beats talent when talent doesn't work hard.", author: "Unknown" },
+            { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+            { text: "A journey of a thousand miles begins with a single step.", author: "Lao Tzu" },
+            { text: "Your life does not get better by chance, it gets better by change.", author: "Unknown" },
+            { text: "Character is doing the right thing when nobody is looking.", author: "J.C. Watts" },
+            { text: "The best way to predict your future is to create it.", author: "Abraham Lincoln" }
+        ];
+
+        function saveTasks() {
+            localStorage.setItem('myWeeklyFocusTasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        function displayRandomQuote() {
+            const quote = quoteLibrary[Math.floor(Math.random() * quoteLibrary.length)];
+            document.getElementById('quote-text').textContent = `"${quote.text}"`;
+            document.getElementById('quote-author').textContent = `— ${quote.author}`;
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `no-print fixed bottom-10 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl transition-all duration-300 z-50 ${isError ? 'bg-red-600' : 'bg-gray-900'} text-white opacity-100 translate-y-0`;
+            setTimeout(() => toast.classList.add('opacity-0', 'translate-y-4'), 3000);
+        }
+
+        window.addTask = function() {
+            const nameInput = document.getElementById('taskName');
+            const durationInput = document.getElementById('taskDuration');
+            const groupSelect = document.getElementById('taskGroup');
+            const timeSelect = document.getElementById('taskTime');
+            const goalInput = document.getElementById('taskGoal');
+
+            const name = nameInput.value.trim();
+            const duration = durationInput.value.trim();
+            const group = groupSelect.value;
+            const time = timeSelect.value;
+            const goal = parseInt(goalInput.value) || 1;
+
+            if (!name) return showToast("Enter a name", true);
+
+            const days = [];
+            for (let i = 0; i < 7; i++) {
+                days.push(document.getElementById(`day${i}`).checked);
+            }
+
+            const newTask = {
+                id: Date.now().toString(),
+                name,
+                duration,
+                group,
+                time,
+                goal,
+                days,
+                createdAt: new Date().toISOString()
+            };
+
+            tasks.push(newTask);
+            saveTasks();
+            
+            // Clear inputs
+            nameInput.value = '';
+            durationInput.value = '';
+            showToast("Added to your list!");
+        };
+
+        window.deleteTask = function(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            showToast("Removed");
+        };
+
+        function renderTasks() {
+            const focusBody = document.getElementById('focusTableBody');
+            const rewardBody = document.getElementById('rewardTableBody');
+            focusBody.innerHTML = '';
+            rewardBody.innerHTML = '';
+
+            const timeOrder = { "Morning": 0, "Anytime": 1, "Evening": 2 };
+            const timeIcons = { "Morning": "☀️", "Anytime": "🕒", "Evening": "🌙" };
+
+            // Local Sort
+            const sorted = [...tasks].sort((a, b) => timeOrder[a.time] - timeOrder[b.time]);
+
+            sorted.forEach(task => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition-colors";
+
+                let rowHtml = `
+                    <td class="text-left px-4 py-3">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[9px] font-black uppercase text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border">${timeIcons[task.time]} ${task.time}</span>
+                            ${task.duration ? `<span class="text-[9px] font-black uppercase text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">⏱ ${task.duration}</span>` : ''}
+                        </div>
+                        <div class="text-sm font-bold text-gray-800">${task.name}</div>
+                    </td>
+                    <td class="font-black text-gray-700 text-xs">${task.goal}x</td>
+                `;
+
+                for (let i = 0; i < 7; i++) {
+                    if (task.days[i]) rowHtml += `<td><div class="checkbox-box mx-auto"></div></td>`;
+                    else rowHtml += `<td class="gray-cell"></td>`;
+                }
+
+                rowHtml += `
+                    <td class="no-print">
+                        <button onclick="deleteTask('${task.id}')" class="text-gray-300 hover:text-red-500 p-1">
+                            <svg class="h-4 w-4" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </td>
+                `;
+
+                tr.innerHTML = rowHtml;
+                if (task.group === 'focus') focusBody.appendChild(tr);
+                else rewardBody.appendChild(tr);
+            });
+
+            if (focusBody.children.length === 0) focusBody.innerHTML = '<tr><td colspan="10" class="py-8 text-xs text-gray-400">Add daily habits to stay focused!</td></tr>';
+            if (rewardBody.children.length === 0) rewardBody.innerHTML = '<tr><td colspan="10" class="py-8 text-xs text-gray-400">Add quest goals to earn rewards!</td></tr>';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTasks();
+            displayRandomQuote();
+        });
+    </script>
+</body>
+</html>
