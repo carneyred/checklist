@@ -96,6 +96,13 @@
         table { border-collapse: collapse; width: 100%; margin-bottom: 1.5rem; }
         th, td { border: 1.5px solid #1f2937; text-align: center; padding: 8px 4px; }
         th { background-color: #f9fafb; font-weight: 900; color: #111827; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
+
+        /* Animation for unlock */
+        @keyframes unlock-bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .unlock-animate { animation: unlock-bounce 0.5s ease-out; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-4 md:p-8">
@@ -114,6 +121,12 @@
             </div>
         </div>
         <div class="flex gap-3">
+            <button onclick="toggleConfig()" class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-bold transition active:scale-95">
+                <svg id="config-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-300" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                Manage Habits
+            </button>
             <button onclick="window.print()" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition shadow-lg active:scale-95">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewbox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -123,8 +136,8 @@
         </div>
     </div>
 
-    <!-- Management Panel (No-Print) -->
-    <div class="no-print max-w-5xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-200 mb-8">
+    <!-- Management Panel (No-Print) - Hidden by Default -->
+    <div id="configPanel" class="no-print max-w-5xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-200 mb-8 hidden overflow-hidden transition-all duration-300">
         <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-3">
             <span class="w-12 h-[3px] bg-indigo-100 rounded-full"></span>
             Add New Focus Item
@@ -257,12 +270,25 @@
                 </div>
             </div>
             <div class="flex flex-col justify-center text-right">
-                <div class="bg-gray-900 p-8 rounded-[40px] shadow-xl relative overflow-hidden text-white border-friendly">
-                    <div class="absolute -top-4 -right-4 opacity-10">
-                        <svg class="w-32 h-32" fill="currentColor" viewbox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H16.017C14.9124 8 14.017 7.10457 14.017 6V5C14.017 3.89543 14.9124 3 16.017 3H19.017C21.2261 3 23.017 4.79086 23.017 7V15C23.017 18.3137 20.3307 21 17.017 21H14.017ZM1.017 21L1.017 18C1.017 16.8954 1.91243 16 3.017 16H6.017C6.56928 16 7.017 15.5523 7.017 15V9C7.017 8.44772 6.56928 8 6.017 8H3.017C1.91243 8 1.017 7.10457 1.017 6V5C1.017 3.89543 1.91243 3 3.017 3H6.017C8.22614 3 10.017 4.79086 10.017 7V15C10.017 18.3137 7.33072 21 4.017 21H1.017Z"/></svg>
+                <div id="quote-card" class="bg-gray-900 p-8 rounded-[40px] shadow-xl relative overflow-hidden text-white border-friendly transition-all duration-500">
+                    <!-- Lock Icon Area -->
+                    <div id="lock-status-icon" class="absolute -top-4 -right-4 transition-all duration-500">
+                        <svg id="svg-lock" class="w-32 h-32 opacity-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 15V17M6 10V7C6 3.68629 8.68629 1 12 1C15.3137 1 18 3.68629 18 7V10H19C20.1046 10 21 10.8954 21 12V21C21 22.1046 20.1046 23 19 23H5C3.89543 23 3 22.1046 3 21V12C3 10.8954 3.89543 10 5 10H6ZM8 10H16V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V10Z" />
+                        </svg>
                     </div>
-                    <p id="quote-text" class="font-bold italic mb-4 text-base leading-relaxed relative z-10"></p>
-                    <p id="quote-author" class="font-black text-indigo-400 text-xs uppercase tracking-widest relative z-10"></p>
+
+                    <!-- Locked Placeholder -->
+                    <div id="locked-placeholder" class="relative z-10 flex flex-col items-center justify-center py-4">
+                        <p class="text-xs font-black uppercase tracking-[0.3em] text-indigo-400 mb-2">Locked Weekly Wisdom</p>
+                        <p class="text-sm font-bold text-gray-400 italic">Complete all required habits for the week to unlock the proverb.</p>
+                    </div>
+
+                    <!-- Quote Content (Hidden when locked) -->
+                    <div id="quote-content" class="hidden relative z-10">
+                        <p id="quote-text" class="font-bold italic mb-4 text-base leading-relaxed"></p>
+                        <p id="quote-author" class="font-black text-indigo-400 text-xs uppercase tracking-widest"></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -274,50 +300,62 @@
     <script>
         // --- Core State Logic ---
         let tasks = JSON.parse(localStorage.getItem('myWeeklyFocusTasksV4')) || [];
+        let currentQuote = null;
 
         const quoteLibrary = [
             { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
             { text: "Quality is not an act, it is a habit.", author: "Aristotle" },
             { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
-            { text: "It’s not what we do once in a while that shapes our lives. It’s what we do consistently.", author: "Unknown" },
-            { text: "Motivation is what gets you started. Habit is what keeps you going.", author: "Unknown" },
-            { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Unknown" },
-            { text: "Discipline is the bridge between goals and accomplishment.", author: "Unknown" },
+            { text: "It’s not what we do once in a while that shapes our lives. It’s what we do consistently.", author: "Tony Robbins" },
+            { text: "Motivation is what gets you started. Habit is what keeps you going.", author: "Jim Ryun" },
+            { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Will Durant" },
+            { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
             { text: "Small steps in the right direction can turn out to be the biggest step of your life.", author: "Unknown" },
             { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
             { text: "Consistency is more important than perfection.", author: "Unknown" },
-            { text: "Don't watch the clock; do what it does. Keep going.", author: "Unknown" },
-            { text: "Your habits will determine your future.", author: "Unknown" },
+            { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+            { text: "Your habits will determine your future.", author: "Jack Canfield" },
             { text: "The successful man is the average man, with laser-like focus.", author: "Bruce Lee" },
-            { text: "Focus on being productive instead of busy.", author: "Unknown" },
+            { text: "Focus on being productive instead of busy.", author: "Tim Ferriss" },
             { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
-            { text: "You don't have to be great to start, but you have to start to be great.", author: "Unknown" },
+            { text: "You don't have to be great to start, but you have to start to be great.", author: "Zig Ziglar" },
             { text: "Energy and persistence conquer all things.", author: "Benjamin Franklin" },
             { text: "The difference between who you are and who you want to be is what you do.", author: "Unknown" },
-            { text: "Winning is a habit. Unfortunately, so is losing.", author: "Unknown" },
+            { text: "Winning is a habit. Unfortunately, so is losing.", author: "Vince Lombardi" },
             { text: "If you want to change your life, change your habits.", author: "Unknown" },
-            { text: "Small daily improvements are the key to staggering long-term results.", author: "Unknown" },
+            { text: "Small daily improvements are the key to staggering long-term results.", author: "Robin Sharma" },
             { text: "The only limit to our realization of tomorrow will be our doubts of today.", author: "Franklin D. Roosevelt" },
             { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
             { text: "Action is the foundational key to all success.", author: "Pablo Picasso" },
-            { text: "Don't let what you cannot do interfere with what you can do.", author: "Unknown" },
-            { text: "Hard work beats talent when talent doesn't work hard.", author: "Unknown" },
+            { text: "Don't let what you cannot do interfere with what you can do.", author: "John Wooden" },
+            { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
             { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
             { text: "A journey of a thousand miles begins with a single step.", author: "Lao Tzu" },
-            { text: "Your life does not get better by chance, it gets better by change.", author: "Unknown" },
+            { text: "Your life does not get better by chance, it gets better by change.", author: "Jim Rohn" },
             { text: "Character is doing the right thing when nobody is looking.", author: "J.C. Watts" },
             { text: "The best way to predict your future is to create it.", author: "Abraham Lincoln" },
             { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
-            { text: "Don't count the days, make the days count.", author: "Unknown" },
-            { text: "Everything you’ve ever wanted is on the other side of fear.", author: "Unknown" },
+            { text: "Don't count the days, make the days count.", author: "Muhammad Ali" },
+            { text: "Everything you’ve ever wanted is on the other side of fear.", author: "George Addair" },
             { text: "Hardships often prepare ordinary people for an extraordinary destiny.", author: "C.S. Lewis" },
             { text: "The only person you should try to be better than is the person you were yesterday.", author: "Unknown" },
             { text: "Your time is limited, so don't waste it living someone else's life.", author: "Steve Jobs" },
             { text: "Do what you can, with what you have, where you are.", author: "Theodore Roosevelt" },
             { text: "I find that the harder I work, the more luck I seem to have.", author: "Thomas Jefferson" },
             { text: "Success is stumbling from failure to failure with no loss of enthusiasm.", author: "Winston Churchill" },
-            { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Unknown" }
+            { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" }
         ];
+
+        function toggleConfig() {
+            const panel = document.getElementById('configPanel');
+            const icon = document.getElementById('config-icon');
+            panel.classList.toggle('hidden');
+            if (panel.classList.contains('hidden')) {
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
 
         function saveTasks() {
             localStorage.setItem('myWeeklyFocusTasksV4', JSON.stringify(tasks));
@@ -325,9 +363,9 @@
         }
 
         function displayRandomQuote() {
-            const quote = quoteLibrary[Math.floor(Math.random() * quoteLibrary.length)];
-            document.getElementById('quote-text').textContent = `"${quote.text}"`;
-            document.getElementById('quote-author').textContent = `— ${quote.author}`;
+            currentQuote = quoteLibrary[Math.floor(Math.random() * quoteLibrary.length)];
+            document.getElementById('quote-text').textContent = `"${currentQuote.text}"`;
+            document.getElementById('quote-author').textContent = `— ${currentQuote.author}`;
         }
 
         function showToast(msg, isError = false) {
@@ -335,6 +373,45 @@
             toast.textContent = msg;
             toast.className = `no-print fixed bottom-10 left-1/2 transform -translate-x-1/2 px-10 py-4 rounded-full shadow-2xl transition-all duration-300 z-50 ${isError ? 'bg-red-600' : 'bg-gray-950'} text-white opacity-100 translate-y-0`;
             setTimeout(() => toast.classList.add('opacity-0', 'translate-y-4'), 3000);
+        }
+
+        function checkCompletion() {
+            if (tasks.length === 0) return false;
+            return tasks.every(task => {
+                // If the task has no active days, technically it's "complete"
+                return task.activeDays.every((isActive, idx) => {
+                    if (!isActive) return true;
+                    return task.checked && task.checked[idx] === true;
+                });
+            });
+        }
+
+        function updateLockStatus() {
+            const isComplete = checkCompletion();
+            const placeholder = document.getElementById('locked-placeholder');
+            const content = document.getElementById('quote-content');
+            const lockIcon = document.getElementById('svg-lock');
+            const card = document.getElementById('quote-card');
+
+            if (isComplete) {
+                if (content.classList.contains('hidden')) {
+                    card.classList.add('unlock-animate');
+                    setTimeout(() => card.classList.remove('unlock-animate'), 600);
+                }
+                placeholder.classList.add('hidden');
+                content.classList.remove('hidden');
+                // Unlocked Icon
+                lockIcon.innerHTML = '<path d="M12 15V17M6 10V7C6 3.68629 8.68629 1 12 1C15.3137 1 18 3.68629 18 7V10H19C20.1046 10 21 10.8954 21 12V21C21 22.1046 20.1046 23 19 23H5C3.89543 23 3 22.1046 3 21V12C3 10.8954 3.89543 10 5 10H16V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V10H6" />';
+                lockIcon.classList.add('text-emerald-500');
+                lockIcon.classList.remove('text-white');
+            } else {
+                placeholder.classList.remove('hidden');
+                content.classList.add('hidden');
+                // Locked Icon
+                lockIcon.innerHTML = '<path d="M12 15V17M6 10V7C6 3.68629 8.68629 1 12 1C15.3137 1 18 3.68629 18 7V10H19C20.1046 10 21 10.8954 21 12V21C21 22.1046 20.1046 23 19 23H5C3.89543 23 3 22.1046 3 21V12C3 10.8954 3.89543 10 5 10H6ZM8 10H16V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V10Z" />';
+                lockIcon.classList.remove('text-emerald-500');
+                lockIcon.classList.add('text-white');
+            }
         }
 
         window.toggleCheck = function(taskId, dayIndex) {
@@ -467,6 +544,8 @@
 
             if (focusBody.children.length === 0) focusBody.innerHTML = '<tr><td colspan="10" class="py-16 text-xs font-black text-gray-300 uppercase tracking-[0.3em] italic">Foundational habits go here</td></tr>';
             if (rewardBody.children.length === 0) rewardBody.innerHTML = '<tr><td colspan="10" class="py-16 text-xs font-black text-gray-300 uppercase tracking-[0.3em] italic">Quest rewards go here</td></tr>';
+            
+            updateLockStatus();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
