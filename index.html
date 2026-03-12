@@ -7,9 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; background-color: #f3f4f6; }
         
-        /* Print Specific Styles - Black & White Friendly */
+        /* Print Specific Styles */
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; padding: 0 !important; }
@@ -21,536 +21,663 @@
                 padding: 10mm !important;
                 border: none !important;
             }
-            .date-input { border-bottom: 2px solid #000 !important; }
             * { 
                 -webkit-print-color-adjust: exact !important; 
                 print-color-adjust: exact !important; 
                 color: black !important;
-                background-color: transparent !important;
-                border-color: black !important;
-                box-shadow: none !important;
-                text-shadow: none !important;
             }
-            .gray-cell { background-color: #eee !important; border: 1px solid black !important; }
             .checkbox-box { border: 2px solid black !important; }
-            .checkmark-svg { color: black !important; }
             th { background-color: #f0f0f0 !important; border: 2px solid black !important; }
             td { border: 1px solid black !important; }
-            .section-tag { border: 2px solid black !important; padding: 2px 8px !important; font-weight: 900 !important; }
-            .reward-box { border: 2px dashed black !important; background: white !important; }
         }
 
-        /* Checkbox Container */
+        /* Checkbox Styling */
         .check-container {
             position: relative;
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             margin: 0 auto;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
         }
+        .check-container.disabled { cursor: not-allowed; opacity: 0.2; }
 
-        /* The actual box - Increased size */
         .checkbox-box {
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
             border: 2.5px solid #1f2937;
-            border-radius: 4px;
+            border-radius: 6px;
             background: #fff;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* The Tick - even larger and bolder */
         .checkmark-svg {
             position: absolute;
-            top: -1px;
-            left: 7px;
             width: 32px;
             height: 32px;
-            color: #059669; /* Emerald 600 */
+            color: #059669; 
             pointer-events: none;
-            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
         }
 
-        .check-container:hover .checkbox-box {
+        .check-container:not(.disabled):hover .checkbox-box {
             border-color: #4f46e5;
             background-color: #f5f3ff;
+            transform: scale(1.1);
         }
 
-        .gray-cell { background-color: #f3f4f6; }
+        .gray-cell { background-color: #e5e7eb; border-radius: 4px; }
         
         .printable-area {
             width: 210mm;
             min-height: 297mm;
             background: white;
-            margin: 0 auto;
-            padding: 25px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
-            transition: all 0.3s ease;
+            margin: 2rem auto;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            border-radius: 24px;
+            position: relative;
         }
 
         table { border-collapse: collapse; width: 100%; margin-bottom: 1.5rem; }
-        th, td { border: 1.5px solid #1f2937; text-align: center; padding: 8px 4px; }
-        th { background-color: #f9fafb; font-weight: 900; color: #111827; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
+        th, td { border: 1.5px solid #1f2937; text-align: center; padding: 10px 4px; }
+        th { background-color: #f9fafb; font-weight: 900; color: #111827; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; }
 
-        /* Animation for unlock */
-        @keyframes unlock-bounce {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+        /* CELEBRATION ANIMATIONS */
+        .unlock-effect { 
+            position: fixed; 
+            pointer-events: none; 
+            z-index: 9999; 
+            top: 0; 
+            left: 0;
+            will-change: transform, opacity;
         }
-        .unlock-animate { animation: unlock-bounce 0.5s ease-out; }
+
+        @keyframes streamer-spiral {
+            0% { transform: translate(var(--start-x), 110vh) rotate(0deg) scale(0.5); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translate(var(--end-x), -20vh) rotate(var(--rot)) scale(var(--scale)); opacity: 0; }
+        }
+
+        @keyframes ghost-march {
+            0% { transform: translateX(-200px) translateY(var(--start-y)); opacity: 1; }
+            100% { transform: translateX(110vw) translateY(var(--end-y)); opacity: 1; }
+        }
+
+        @keyframes firework-explode {
+            0% { transform: scale(0); opacity: 1; }
+            70% { opacity: 1; }
+            100% { transform: scale(5); opacity: 0; }
+        }
+
+        @keyframes invader-march {
+            0% { transform: translate(var(--x1), var(--y1)); }
+            25% { transform: translate(var(--x2), var(--y1)); }
+            50% { transform: translate(var(--x2), var(--y2)); }
+            75% { transform: translate(var(--x1), var(--y2)); }
+            100% { transform: translate(var(--x1), var(--y1)); }
+        }
+
+        .neon-streamer {
+            width: 8px;
+            height: 60px;
+            border-radius: 100px;
+            animation: streamer-spiral 3.5s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+        }
+
+        .ufo-beam {
+            position: absolute;
+            top: 45px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            background: linear-gradient(to bottom, rgba(56, 189, 248, 0.8), transparent);
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+            height: 0;
+            opacity: 0;
+            transition: height 0.5s, opacity 0.5s;
+        }
+
+        .ufo-beam.active {
+            height: 500px;
+            opacity: 0.6;
+        }
+
+        .shake-ready { animation: lock-shake 0.5s infinite; color: #fbbf24 !important; }
+        @keyframes lock-shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-8deg); }
+            75% { transform: rotate(8deg); }
+        }
+
+        .btn-reveal {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            animation: pulse-reveal 2s infinite;
+        }
+
+        @keyframes pulse-reveal {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.05); filter: brightness(1.2); }
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-4 md:p-8">
+<body class="p-4 md:p-12">
 
-    <!-- Header (No-Print) -->
-    <div class="no-print max-w-5xl mx-auto mb-6 flex flex-col md:flex-row justify-between items-center bg-white p-5 rounded-2xl shadow-sm border border-gray-200 gap-4">
-        <div class="flex items-center gap-4">
-            <div class="p-3 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor">
+    <!-- Header -->
+    <div class="no-print max-w-5xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-3xl shadow-xl border border-gray-100 gap-6">
+        <div class="flex items-center gap-5">
+            <div class="p-4 bg-indigo-600 text-white rounded-2xl shadow-indigo-200 shadow-2xl">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
             </div>
             <div>
-                <h2 class="text-xl font-black text-gray-900 leading-tight tracking-tight uppercase">Weekly Focus Pro</h2>
-                <p class="text-[11px] text-gray-400 font-bold uppercase tracking-[0.2em]">Self-Management Dashboard</p>
+                <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight">Weekly Focus Pro</h2>
+                <p class="text-[12px] text-gray-400 font-bold uppercase tracking-[0.25em]">Precision Habit Engine</p>
             </div>
         </div>
-        <div class="flex gap-3">
-            <button onclick="toggleConfig()" class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-bold transition active:scale-95">
-                <svg id="config-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-300" fill="none" viewbox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                </svg>
-                Manage Habits
+        <div class="flex gap-4">
+            <button onclick="toggleConfig()" class="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-600 px-6 py-3 rounded-2xl font-bold transition-all border border-gray-200">
+                <svg id="config-icon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Adjust Focus
             </button>
-            <button onclick="window.print()" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition shadow-lg active:scale-95">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewbox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                Print Focus Sheet
-            </button>
+            <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-100 transition-all">Print Sheet</button>
         </div>
     </div>
 
-    <!-- Management Panel (No-Print) - Hidden by Default -->
-    <div id="configPanel" class="no-print max-w-5xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-200 mb-8 hidden overflow-hidden transition-all duration-300">
-        <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-3">
-            <span class="w-12 h-[3px] bg-indigo-100 rounded-full"></span>
-            Add New Focus Item
-            <span class="w-12 h-[3px] bg-indigo-100 rounded-full"></span>
-        </h3>
+    <!-- Management Panel -->
+    <div id="configPanel" class="no-print max-w-5xl mx-auto bg-white p-10 rounded-3xl shadow-2xl border border-gray-100 mb-12 hidden">
+        <h3 class="text-sm font-black uppercase text-indigo-400 mb-8 tracking-[0.3em] text-center italic">Personal Habit Matrix</h3>
         
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <div class="col-span-1">
-                <label class="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-2">Habit Name</label>
-                <input type="text" id="taskName" placeholder="e.g., Chanter Practice" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-semibold transition-all">
-            </div>
-            <div>
-                <label class="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-2">Target Duration</label>
-                <input type="text" id="taskDuration" placeholder="e.g., 30 mins" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-semibold transition-all">
-            </div>
-            <div>
-                <label class="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-2">Group Category</label>
-                <select id="taskGroup" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold appearance-none cursor-pointer">
-                    <option value="focus">🌱 Daily Focus (Essential)</option>
-                    <option value="reward">⚔️ Quest Goal (Game Reward)</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-2">Weekly Goal</label>
-                <input type="number" id="taskGoal" min="1" max="7" value="7" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold">
+        <div class="mb-10 pb-10 border-b border-gray-100">
+            <label class="block text-[10px] font-black text-gray-400 uppercase mb-3 ml-1 text-center">Global Settings</label>
+            <div class="max-w-xs mx-auto">
+                <label class="block text-[10px] font-black text-indigo-400 uppercase mb-2 ml-1 text-center">Reward Time (e.g. 60 MINS)</label>
+                <input type="text" id="globalReward" placeholder="60 MINS" class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-bold text-center focus:ring-4 focus:ring-indigo-50 transition-all">
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="col-span-1">
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Habit Name</label>
+                <input type="text" id="taskName" placeholder="e.g. Morning Meditation" class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-semibold focus:ring-4 focus:ring-indigo-50 transition-all">
+            </div>
             <div>
-                <label class="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-2">Time of Day</label>
-                <select id="taskTime" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold appearance-none cursor-pointer">
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Duration</label>
+                <input type="text" id="taskDuration" placeholder="e.g. 15 mins" class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-semibold focus:ring-4 focus:ring-indigo-50 transition-all">
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Category</label>
+                <select id="taskGroup" class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl font-bold outline-none cursor-pointer">
+                    <option value="focus">🌱 Daily Focus</option>
+                    <option value="reward">⚔️ Quest Goal</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Frequency Goal</label>
+                <input type="number" id="taskGoal" min="1" max="7" value="7" class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-bold focus:ring-4 focus:ring-indigo-50 transition-all">
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 text-center">Timing</label>
+                <select id="taskTime" class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl font-bold outline-none cursor-pointer">
                     <option value="Morning">☀️ Morning</option>
                     <option value="Anytime" selected>🕒 Anytime</option>
                     <option value="Evening">🌙 Evening</option>
                 </select>
             </div>
             <div>
-                <label class="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-2">Active Days</label>
-                <div class="flex flex-wrap gap-2 pt-1">
-                    <label class="inline-flex items-center px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer text-[10px] font-black uppercase hover:bg-gray-100 transition"><input type="checkbox" id="day0" checked class="mr-2 accent-indigo-600 scale-110">Sat</label>
-                    <label class="inline-flex items-center px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer text-[10px] font-black uppercase hover:bg-gray-100 transition"><input type="checkbox" id="day1" checked class="mr-2 accent-indigo-600 scale-110">Sun</label>
-                    <label class="inline-flex items-center px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer text-[10px] font-black uppercase hover:bg-gray-100 transition"><input type="checkbox" id="day2" checked class="mr-2 accent-indigo-600 scale-110">Mon</label>
-                    <label class="inline-flex items-center px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer text-[10px] font-black uppercase hover:bg-gray-100 transition"><input type="checkbox" id="day3" checked class="mr-2 accent-indigo-600 scale-110">Tue</label>
-                    <label class="inline-flex items-center px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer text-[10px] font-black uppercase hover:bg-gray-100 transition"><input type="checkbox" id="day4" checked class="mr-2 accent-indigo-600 scale-110">Wed</label>
-                    <label class="inline-flex items-center px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer text-[10px] font-black uppercase hover:bg-gray-100 transition"><input type="checkbox" id="day5" checked class="mr-2 accent-indigo-600 scale-110">Thu</label>
-                    <label class="inline-flex items-center px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer text-[10px] font-black uppercase hover:bg-gray-100 transition"><input type="checkbox" id="day6" checked class="mr-2 accent-indigo-600 scale-110">Fri</label>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 text-center">Active Days</label>
+                <div class="flex flex-wrap justify-center gap-2">
+                    <label class="px-4 py-2.5 bg-gray-50 border rounded-xl text-[10px] font-black uppercase cursor-pointer hover:bg-gray-100 transition border-gray-200"><input type="checkbox" id="day0" checked class="mr-2">Sat</label>
+                    <label class="px-4 py-2.5 bg-gray-50 border rounded-xl text-[10px] font-black uppercase cursor-pointer hover:bg-gray-100 transition border-gray-200"><input type="checkbox" id="day1" checked class="mr-2">Sun</label>
+                    <label class="px-4 py-2.5 bg-gray-50 border rounded-xl text-[10px] font-black uppercase cursor-pointer hover:bg-gray-100 transition border-gray-200"><input type="checkbox" id="day2" checked class="mr-2">Mon</label>
+                    <label class="px-4 py-2.5 bg-gray-50 border rounded-xl text-[10px] font-black uppercase cursor-pointer hover:bg-gray-100 transition border-gray-200"><input type="checkbox" id="day3" checked class="mr-2">Tue</label>
+                    <label class="px-4 py-2.5 bg-gray-50 border rounded-xl text-[10px] font-black uppercase cursor-pointer hover:bg-gray-100 transition border-gray-200"><input type="checkbox" id="day4" checked class="mr-2">Wed</label>
+                    <label class="px-4 py-2.5 bg-gray-50 border rounded-xl text-[10px] font-black uppercase cursor-pointer hover:bg-gray-100 transition border-gray-200"><input type="checkbox" id="day5" checked class="mr-2">Thu</label>
+                    <label class="px-4 py-2.5 bg-gray-50 border rounded-xl text-[10px] font-black uppercase cursor-pointer hover:bg-gray-100 transition border-gray-200"><input type="checkbox" id="day6" checked class="mr-2">Fri</label>
                 </div>
             </div>
         </div>
-
-        <button onclick="addTask()" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl active:scale-95">
-            Add To Weekly Focus
-        </button>
+        <div class="flex gap-4">
+            <button onclick="addTask()" class="flex-grow bg-indigo-600 hover:bg-indigo-700 text-white py-5 rounded-2xl font-black uppercase text-sm tracking-widest shadow-2xl shadow-indigo-100 transition-all active:scale-[0.98]">Deploy Habit</button>
+            <button onclick="saveGlobalReward()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-5 rounded-2xl font-black uppercase text-sm tracking-widest transition-all active:scale-[0.98]">Update Settings</button>
+        </div>
     </div>
 
-    <!-- Printable Canvas -->
+    <!-- Printable Area -->
     <div class="printable-area">
-        <div class="text-center mb-8">
-            <h1 class="text-5xl font-black uppercase tracking-tighter text-gray-900 mb-2 italic">Weekly Focus Tracker</h1>
-            <div class="flex justify-center items-center gap-4 text-xl font-bold text-gray-600 mb-6">
-                <span class="text-xs uppercase tracking-[0.3em] text-gray-400 font-black">Week Starting:</span>
-                <input type="text" placeholder="SATURDAY DATE" class="date-input border-b-2 border-gray-300 focus:border-indigo-500 outline-none px-4 text-center w-64 font-black bg-transparent uppercase tracking-widest">
+        <div class="text-center mb-12">
+            <h1 class="text-6xl font-black uppercase tracking-tighter text-gray-900 mb-4 italic">Focus Tracker</h1>
+            <div class="flex justify-center items-center gap-4 mb-8">
+                <input type="date" id="weekStartDate" onchange="handleDateChange()" class="date-input border-b-4 border-indigo-100 outline-none px-6 text-center w-80 font-black bg-transparent uppercase text-2xl text-indigo-600 transition-all focus:border-indigo-600">
             </div>
-            
-            <div class="max-w-3xl mx-auto border-4 border-dashed border-indigo-300 bg-indigo-50 px-8 py-5 rounded-3xl shadow-sm reward-box">
-                <p class="text-indigo-950 font-black text-base uppercase tracking-tight">
-                    🚀 <span class="text-indigo-600 underline">THE QUEST:</span> COMPLETING YOUR "QUEST GOALS" UNLOCKS <span class="bg-indigo-600 text-white px-3 py-1 rounded-lg">60 MINUTES</span> OF VIDEO GAME REWARD!
+            <div class="max-w-4xl mx-auto border-4 border-indigo-500 bg-indigo-50/50 px-10 py-10 rounded-[40px] shadow-sm">
+                <!-- Added line-height (leading) to prevent overlapping with the pill reward -->
+                <p class="text-indigo-950 font-black text-xl md:text-2xl uppercase tracking-tight leading-[2.6rem]">
+                    🔥 <span class="text-indigo-600 underline">The Mission:</span> COMPLETE YOUR WEEKLY GOALS TO UNLOCK <span id="displayReward" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-2xl shadow-xl mx-1 align-middle">60 MINS</span> OF GAMING REWARD!
                 </p>
             </div>
         </div>
 
-        <!-- Section 1: Daily Focus -->
-        <div class="section-break mb-10">
-            <div class="flex items-center gap-4 mb-4">
-                <div class="bg-emerald-600 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-[0.3em] italic shadow-md section-tag">🌱 Daily Focus</div>
-                <span class="text-[11px] text-emerald-800 font-black uppercase tracking-[0.15em]">Core habits for a productive day</span>
+        <div class="mb-14">
+            <div class="flex items-center gap-5 mb-6">
+                <div class="bg-emerald-600 text-white px-8 py-3 rounded-2xl text-[13px] font-black uppercase italic shadow-lg">🌱 Daily Focus</div>
+                <span class="text-[14px] text-emerald-800/60 font-black uppercase tracking-widest">Foundation Habits</span>
             </div>
             <table>
-                <thead>
-                    <tr>
-                        <th class="w-[38%] py-4">Task & Requirements</th>
-                        <th class="w-12">Goal</th>
-                        <th class="w-12">Sat</th>
-                        <th class="w-12">Sun</th>
-                        <th class="w-12">Mon</th>
-                        <th class="w-12">Tue</th>
-                        <th class="w-12">Wed</th>
-                        <th class="w-12">Thu</th>
-                        <th class="w-12">Fri</th>
-                        <th class="no-print w-12">Del</th>
-                    </tr>
-                </thead>
+                <thead><tr><th class="w-[38%] py-6">Activity Details</th><th class="w-16">Goal</th><th class="w-14">Sat</th><th class="w-14">Sun</th><th class="w-14">Mon</th><th class="w-14">Tue</th><th class="w-14">Wed</th><th class="w-14">Thu</th><th class="w-14">Fri</th><th class="no-print w-16">Del</th></tr></thead>
                 <tbody id="focusTableBody"></tbody>
             </table>
         </div>
 
-        <!-- Section 2: Quest Goals -->
-        <div class="section-break">
-            <div class="flex items-center gap-4 mb-4">
-                <div class="bg-indigo-600 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-[0.3em] italic shadow-md section-tag">⚔️ Quest Goals</div>
-                <span class="text-[11px] text-indigo-800 font-black uppercase tracking-[0.15em]">High-value tasks & practice rewards</span>
+        <div class="mb-14">
+            <div class="flex items-center gap-5 mb-6">
+                <div class="bg-indigo-600 text-white px-8 py-3 rounded-2xl text-[13px] font-black uppercase italic shadow-lg">⚔️ Quest Goals</div>
+                <span class="text-[14px] text-indigo-800/60 font-black uppercase tracking-widest">Skill & Reward Challenges</span>
             </div>
             <table>
-                <thead>
-                    <tr>
-                        <th class="w-[38%] py-4">Quest Description</th>
-                        <th class="w-12">Goal</th>
-                        <th class="w-12">Sat</th>
-                        <th class="w-12">Sun</th>
-                        <th class="w-12">Mon</th>
-                        <th class="w-12">Tue</th>
-                        <th class="w-12">Wed</th>
-                        <th class="w-12">Thu</th>
-                        <th class="w-12">Fri</th>
-                        <th class="no-print w-12">Del</th>
-                    </tr>
-                </thead>
+                <thead><tr><th class="w-[38%] py-6">Quest Details</th><th class="w-16">Goal</th><th class="w-14">Sat</th><th class="w-14">Sun</th><th class="w-14">Mon</th><th class="w-14">Tue</th><th class="w-14">Wed</th><th class="w-14">Thu</th><th class="w-14">Fri</th><th class="no-print w-16">Del</th></tr></thead>
                 <tbody id="rewardTableBody"></tbody>
             </table>
         </div>
 
-        <div class="mt-10 pt-10 border-t-4 border-gray-100 grid grid-cols-2 gap-10">
-            <div class="flex flex-col gap-5">
-                <p class="font-black text-gray-400 text-[11px] uppercase tracking-[0.4em]">Weekly Reflections & Wins</p>
-                <div class="flex-grow border-2 border-gray-100 rounded-3xl p-6 bg-gray-50/40">
-                    <div class="h-6 w-full border-b-2 border-gray-100 mb-6"></div>
-                    <div class="h-6 w-full border-b-2 border-gray-100 mb-6"></div>
-                    <div class="h-6 w-full border-b-2 border-gray-100"></div>
-                </div>
+        <!-- Unlock Section -->
+        <div class="mt-16 pt-12 border-t-8 border-gray-50 grid grid-cols-1 md:grid-cols-2 gap-16">
+            <div class="flex flex-col gap-6">
+                <p class="font-black text-gray-300 text-[13px] uppercase tracking-[0.5em] italic">Post-Action Reflection</p>
+                <div class="flex-grow border-4 border-gray-50 rounded-[50px] p-10 bg-gray-50/20 min-h-[180px]"></div>
             </div>
-            <div class="flex flex-col justify-center text-right">
-                <div id="quote-card" class="bg-gray-900 p-8 rounded-[40px] shadow-xl relative overflow-hidden text-white border-friendly transition-all duration-500">
-                    <!-- Lock Icon Area -->
-                    <div id="lock-status-icon" class="absolute -top-4 -right-4 transition-all duration-500">
-                        <svg id="svg-lock" class="w-32 h-32 opacity-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 15V17M6 10V7C6 3.68629 8.68629 1 12 1C15.3137 1 18 3.68629 18 7V10H19C20.1046 10 21 10.8954 21 12V21C21 22.1046 20.1046 23 19 23H5C3.89543 23 3 22.1046 3 21V12C3 10.8954 3.89543 10 5 10H6ZM8 10H16V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V10Z" />
-                        </svg>
+            <div class="flex flex-col justify-center">
+                <div id="quote-card" onclick="triggerAnimationsOnly()" class="bg-gray-950 p-12 rounded-[60px] shadow-3xl relative overflow-hidden text-white min-h-[260px] flex flex-col items-center justify-center transition-all duration-700 cursor-pointer border-4 border-transparent hover:border-indigo-500/20">
+                    <div id="lock-status-icon" class="absolute -top-10 -right-10 transition-all duration-700">
+                        <svg id="svg-lock" class="w-56 h-56 opacity-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 15V17M6 10V7C6 3.68629 8.68629 1 12 1C15.3137 1 18 3.68629 18 7V10H19C20.1046 10 21 10.8954 21 12V21C21 22.1046 20.1046 23 19 23H5C3.89543 23 3 22.1046 3 21V12C3 10.8954 3.89543 10 5 10H6ZM8 10H16V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V10Z" /></svg>
                     </div>
 
-                    <!-- Locked Placeholder -->
-                    <div id="locked-placeholder" class="relative z-10 flex flex-col items-center justify-center py-4">
-                        <p class="text-xs font-black uppercase tracking-[0.3em] text-indigo-400 mb-2">Locked Weekly Wisdom</p>
-                        <p class="text-sm font-bold text-gray-400 italic">Complete all required habits for the week to unlock the proverb.</p>
+                    <div id="locked-placeholder" class="relative z-10 flex flex-col items-center gap-6">
+                        <div class="bg-white/5 px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-[0.5em] text-indigo-500">Ancient Archives</div>
+                        <p id="lock-text" class="text-sm font-medium text-gray-500 italic px-8 text-center leading-relaxed">Meet your frequency goals across all habits to unlock this week's digital proverb.</p>
+                        <button id="unlock-btn" onclick="revealProverb(event)" class="hidden no-print btn-reveal text-white px-12 py-5 rounded-full font-black uppercase text-sm tracking-[0.3em] transition-all border-2 border-indigo-400">Unlock Reward</button>
                     </div>
 
-                    <!-- Quote Content (Hidden when locked) -->
-                    <div id="quote-content" class="hidden relative z-10">
-                        <p id="quote-text" class="font-bold italic mb-4 text-base leading-relaxed"></p>
-                        <p id="quote-author" class="font-black text-indigo-400 text-xs uppercase tracking-widest"></p>
+                    <div id="quote-content" class="hidden relative z-10 w-full px-4 animate-in fade-in zoom-in duration-1000">
+                        <div class="flex justify-center mb-6">
+                            <div class="bg-emerald-500/10 text-emerald-400 p-3 rounded-full border border-emerald-500/20">
+                                <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16a1 1 0 01-1 1H6a1 1 0 110-2h1a1 1 0 011 1zM13 16a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM16.464 16.464a1 1 0 101.414-1.414l-.707-.707a1 1 0 00-1.414 1.414l.707.707z" /></svg>
+                            </div>
+                        </div>
+                        <p id="quote-text" class="font-black italic mb-8 text-2xl md:text-3xl leading-tight text-center tracking-tight"></p>
+                        <p id="quote-author" class="font-black text-indigo-400 text-[11px] uppercase tracking-[0.4em] text-center"></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="no-print fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-10 py-4 rounded-full shadow-2xl transition-all duration-300 opacity-0 pointer-events-none z-50 font-black text-xs uppercase tracking-widest"></div>
+    <!-- Notification Toast -->
+    <div id="toast" class="no-print fixed bottom-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-12 py-5 rounded-full shadow-3xl opacity-0 transition-all font-black text-xs uppercase tracking-[0.2em] z-[10000] border border-white/10 pointer-events-none"></div>
 
     <script>
-        // --- Core State Logic ---
-        let tasks = JSON.parse(localStorage.getItem('myWeeklyFocusTasksV4')) || [];
-        let currentQuote = null;
+        let tasks = JSON.parse(localStorage.getItem('myWeeklyFocusTasksV9')) || [];
+        let weekStarting = localStorage.getItem('myWeeklyFocusDate') || getClosestSaturday(new Date());
+        let unlockedWeeks = JSON.parse(localStorage.getItem('myWeeklyFocusUnlocked')) || {};
+        let globalReward = localStorage.getItem('myWeeklyFocusRewardV9') || "60 MINS";
 
         const quoteLibrary = [
-            { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
             { text: "Quality is not an act, it is a habit.", author: "Aristotle" },
-            { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
-            { text: "It’s not what we do once in a while that shapes our lives. It’s what we do consistently.", author: "" },
-            { text: "Motivation is what gets you started. Habit is what keeps you going.", author: "" },
-            { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "" },
-            { text: "Discipline is the bridge between goals and accomplishment.", author: "" },
-            { text: "Small steps in the right direction can turn out to be the biggest step of your life.", author: "Unknown" },
-            { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
-            { text: "Consistency is more important than perfection.", author: "Unknown" },
-            { text: "Don't watch the clock; do what it does. Keep going.", author: "" },
-            { text: "Your habits will determine your future.", author: "" },
+            { text: "Winning is a habit. Unfortunately, so is losing.", author: "Vince Lombardi" },
+            { text: "Consistency is the DNA of mastery.", author: "Robin Sharma" },
             { text: "The successful man is the average man, with laser-like focus.", author: "Bruce Lee" },
-            { text: "Focus on being productive instead of busy.", author: "" },
-            { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
-            { text: "You don't have to be great to start, but you have to start to be great.", author: "" },
-            { text: "Energy and persistence conquer all things.", author: "Benjamin Franklin" },
-            { text: "The difference between who you are and who you want to be is what you do.", author: "Unknown" },
-            { text: "Winning is a habit. Unfortunately, so is losing.", author: "" },
-            { text: "If you want to change your life, change your habits.", author: "Unknown" },
-            { text: "Small daily improvements are the key to staggering long-term results.", author: "" },
-            { text: "The only limit to our realization of tomorrow will be our doubts of today.", author: "Franklin D. Roosevelt" },
-            { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
-            { text: "Action is the foundational key to all success.", author: "Pablo Picasso" },
-            { text: "Don't let what you cannot do interfere with what you can do.", author: "John Wooden" },
-            { text: "Hard work beats talent when talent doesn't work hard.", author: "" },
-            { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
-            { text: "A journey of a thousand miles begins with a single step.", author: "Lao Tzu" },
-            { text: "Your life does not get better by chance, it gets better by change.", author: "" },
-            { text: "Character is doing the right thing when nobody is looking.", author: "J.C. Watts" },
-            { text: "The best way to predict your future is to create it.", author: "Abraham Lincoln" },
-            { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
-            { text: "Don't count the days, make the days count.", author: "" },
-            { text: "Everything you’ve ever wanted is on the other side of fear.", author: "" },
-            { text: "Hardships often prepare ordinary people for an extraordinary destiny.", author: "C.S. Lewis" },
-            { text: "The only person you should try to be better than is the person you were yesterday.", author: "Unknown" },
-            { text: "Your time is limited, so don't waste it living someone else's life.", author: "Steve Jobs" },
-            { text: "Do what you can, with what you have, where you are.", author: "Theodore Roosevelt" },
-            { text: "I find that the harder I work, the more luck I seem to have.", author: "Thomas Jefferson" },
-            { text: "Success is stumbling from failure to failure with no loss of enthusiasm.", author: "Winston Churchill" },
-            { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" }
+            { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
+            { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
+            { text: "Small steps in the right direction lead to huge results.", author: "Unknown" },
+            { text: "The harder I work, the more luck I seem to have.", author: "Thomas Jefferson" },
+            { text: "Character is power.", author: "Booker T. Washington" }
         ];
 
-        function toggleConfig() {
-            const panel = document.getElementById('configPanel');
-            const icon = document.getElementById('config-icon');
-            panel.classList.toggle('hidden');
-            if (panel.classList.contains('hidden')) {
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                icon.style.transform = 'rotate(180deg)';
-            }
+        function getClosestSaturday(d) {
+            const date = new Date(d);
+            const day = date.getDay(); 
+            const diff = (day === 6) ? 0 : -(day + 1);
+            date.setDate(date.getDate() + diff);
+            return date.toISOString().split('T')[0];
         }
 
-        function saveTasks() {
-            localStorage.setItem('myWeeklyFocusTasksV4', JSON.stringify(tasks));
+        function handleDateChange() {
+            const input = document.getElementById('weekStartDate');
+            weekStarting = getClosestSaturday(new Date(input.value));
+            input.value = weekStarting;
+            localStorage.setItem('myWeeklyFocusDate', weekStarting);
             renderTasks();
         }
 
-        function displayRandomQuote() {
-            currentQuote = quoteLibrary[Math.floor(Math.random() * quoteLibrary.length)];
-            document.getElementById('quote-text').textContent = `"${currentQuote.text}"`;
-            document.getElementById('quote-author').textContent = `— ${currentQuote.author}`;
-        }
-
-        function showToast(msg, isError = false) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.className = `no-print fixed bottom-10 left-1/2 transform -translate-x-1/2 px-10 py-4 rounded-full shadow-2xl transition-all duration-300 z-50 ${isError ? 'bg-red-600' : 'bg-gray-950'} text-white opacity-100 translate-y-0`;
-            setTimeout(() => toast.classList.add('opacity-0', 'translate-y-4'), 3000);
-        }
-
-        function checkCompletion() {
-            if (tasks.length === 0) return false;
-            return tasks.every(task => {
-                // If the task has no active days, technically it's "complete"
-                return task.activeDays.every((isActive, idx) => {
-                    if (!isActive) return true;
-                    return task.checked && task.checked[idx] === true;
-                });
-            });
-        }
-
-        function updateLockStatus() {
-            const isComplete = checkCompletion();
-            const placeholder = document.getElementById('locked-placeholder');
-            const content = document.getElementById('quote-content');
-            const lockIcon = document.getElementById('svg-lock');
-            const card = document.getElementById('quote-card');
-
-            if (isComplete) {
-                if (content.classList.contains('hidden')) {
-                    card.classList.add('unlock-animate');
-                    setTimeout(() => card.classList.remove('unlock-animate'), 600);
-                }
-                placeholder.classList.add('hidden');
-                content.classList.remove('hidden');
-                // Unlocked Icon
-                lockIcon.innerHTML = '<path d="M12 15V17M6 10V7C6 3.68629 8.68629 1 12 1C15.3137 1 18 3.68629 18 7V10H19C20.1046 10 21 10.8954 21 12V21C21 22.1046 20.1046 23 19 23H5C3.89543 23 3 22.1046 3 21V12C3 10.8954 3.89543 10 5 10H16V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V10H6" />';
-                lockIcon.classList.add('text-emerald-500');
-                lockIcon.classList.remove('text-white');
-            } else {
-                placeholder.classList.remove('hidden');
-                content.classList.add('hidden');
-                // Locked Icon
-                lockIcon.innerHTML = '<path d="M12 15V17M6 10V7C6 3.68629 8.68629 1 12 1C15.3137 1 18 3.68629 18 7V10H19C20.1046 10 21 10.8954 21 12V21C21 22.1046 20.1046 23 19 23H5C3.89543 23 3 22.1046 3 21V12C3 10.8954 3.89543 10 5 10H6ZM8 10H16V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V10Z" />';
-                lockIcon.classList.remove('text-emerald-500');
-                lockIcon.classList.add('text-white');
+        function toggleConfig() { 
+            const panel = document.getElementById('configPanel');
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+                document.getElementById('globalReward').value = globalReward;
             }
         }
 
-        window.toggleCheck = function(taskId, dayIndex) {
-            const task = tasks.find(t => t.id === taskId);
-            if (task) {
-                if (!task.checked) task.checked = Array(7).fill(false);
-                task.checked[dayIndex] = !task.checked[dayIndex];
+        function saveGlobalReward() {
+            globalReward = document.getElementById('globalReward').value.trim() || "60 MINS";
+            localStorage.setItem('myWeeklyFocusRewardV9', globalReward);
+            renderTasks();
+            showToast("REWARD SETTINGS UPDATED");
+        }
+
+        function saveTasks() {
+            localStorage.setItem('myWeeklyFocusTasksV9', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.opacity = '1';
+            t.style.bottom = '16px';
+            setTimeout(() => { t.style.opacity = '0'; t.style.bottom = '12px'; }, 3000);
+        }
+
+        // --- CELEBRATION ENGINE ---
+
+        function runNeonStreamers() {
+            const colors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ffffff'];
+            for (let i = 0; i < 45; i++) {
+                setTimeout(() => {
+                    const s = document.createElement('div');
+                    s.className = 'unlock-effect neon-streamer';
+                    const startX = (Math.random() * 100) + 'vw';
+                    s.style.left = '0';
+                    const c = colors[Math.floor(Math.random() * colors.length)];
+                    s.style.backgroundColor = c;
+                    s.style.boxShadow = `0 0 20px ${c}, 0 0 40px ${c}`;
+                    s.style.setProperty('--start-x', startX);
+                    s.style.setProperty('--end-x', (Math.random() * 100) + 'vw');
+                    s.style.setProperty('--rot', (Math.random() * 1440 + 720) + 'deg');
+                    s.style.setProperty('--scale', 0.8 + Math.random() * 1.5);
+                    document.body.appendChild(s);
+                    setTimeout(() => s.remove(), 4000);
+                }, i * 50);
+            }
+        }
+
+        function runGiantGhosts() {
+            const colors = ['#ff0000', '#ffb8ff', '#00ffff', '#ffb852']; 
+            colors.forEach((c, i) => {
+                setTimeout(() => {
+                    const g = document.createElement('div');
+                    g.className = 'unlock-effect';
+                    g.style.width = '120px'; g.style.height = '120px';
+                    g.style.left = '-200px'; 
+                    g.style.setProperty('--start-y', (10 + (i * 22)) + 'vh');
+                    g.style.setProperty('--end-y', (10 + (i * 22) + (Math.random()*15 - 7.5)) + 'vh');
+                    g.style.animation = `ghost-march ${6 + (i * 0.4)}s linear forwards`;
+                    g.innerHTML = `<svg viewBox="0 0 14 14" fill="${c}" style="filter: drop-shadow(0 0 30px ${c})"><path d="M1 14V6Q1 1 7 1Q13 1 13 6V14L11 12L9 14L7 12L5 14L3 12L1 14Z" /><rect x="3" y="4" width="2" height="3" fill="white" /><rect x="9" y="4" width="2" height="3" fill="white" /><rect x="4" y="5" width="1" height="1" fill="blue" /><rect x="10" y="5" width="1" height="1" fill="blue" /></svg>`;
+                    document.body.appendChild(g);
+                    setTimeout(() => g.remove(), 7000);
+                }, i * 700);
+            });
+        }
+
+        function runUFOMadness() {
+            for (let i = 0; i < 4; i++) {
+                setTimeout(() => {
+                    const ufo = document.createElement('div');
+                    ufo.className = 'unlock-effect';
+                    ufo.style.width = '100px'; 
+                    ufo.style.left = '-150px';
+                    ufo.style.top = (15 + Math.random() * 60) + 'vh';
+                    ufo.innerHTML = `
+                        <div class="relative transition-all duration-300">
+                            <svg width="100" height="50" viewBox="0 0 120 60">
+                                <ellipse cx="60" cy="40" rx="55" ry="15" fill="#94a3b8" stroke="#1f2937" stroke-width="3"/>
+                                <path d="M40 35 Q60 5 80 35" fill="#38bdf8" stroke="#1f2937" stroke-width="3"/>
+                                <circle cx="35" cy="40" r="4" fill="yellow" />
+                                <circle cx="60" cy="40" r="4" fill="yellow" />
+                                <circle cx="85" cy="40" r="4" fill="yellow" />
+                            </svg>
+                            <div class="ufo-beam"></div>
+                        </div>`;
+                    document.body.appendChild(ufo);
+                    
+                    let x = -150;
+                    const stopAt = window.innerWidth * (0.2 + Math.random() * 0.6);
+                    const speed = 12 + Math.random() * 8;
+                    let beamsFired = false;
+
+                    const mover = setInterval(() => {
+                        x += speed;
+                        ufo.style.left = x + 'px';
+                        
+                        if (x > stopAt && !beamsFired) {
+                            beamsFired = true;
+                            const beam = ufo.querySelector('.ufo-beam');
+                            beam.classList.add('active');
+                            setTimeout(() => beam.classList.remove('active'), 1500);
+                        }
+
+                        if (x > window.innerWidth + 200) {
+                            clearInterval(mover);
+                            ufo.remove();
+                        }
+                    }, 30);
+                }, i * 2000);
+            }
+        }
+
+        function runMegaFireworks() {
+            const colors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ffffff'];
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const f = document.createElement('div');
+                    f.className = 'unlock-effect';
+                    const x = (10 + Math.random() * 80) + 'vw';
+                    const y = (10 + Math.random() * 60) + 'vh';
+                    f.style.left = x; f.style.top = y;
+                    const c = colors[Math.floor(Math.random() * colors.length)];
+                    f.innerHTML = `<div style="width:15px; height:15px; border-radius:50%; background:${c}; box-shadow: 0 0 60px ${c}, 0 0 100px white; animation: firework-explode 1.2s ease-out forwards"></div>`;
+                    document.body.appendChild(f);
+
+                    for(let j=0; j<16; j++) {
+                        const p = document.createElement('div');
+                        p.className = 'unlock-effect';
+                        p.style.left = x; p.style.top = y;
+                        p.innerHTML = `<div style="width:4px; height:4px; background:${c}; border-radius:50%; box-shadow: 0 0 10px ${c}"></div>`;
+                        const angle = (j / 16) * Math.PI * 2;
+                        const dist = 120 + Math.random() * 150;
+                        p.animate([
+                            { transform: 'translate(0,0)', opacity: 1 },
+                            { transform: `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`, opacity: 0 }
+                        ], { duration: 1200 + Math.random()*400, easing: 'ease-out' });
+                        document.body.appendChild(p);
+                        setTimeout(() => p.remove(), 2000);
+                    }
+                    setTimeout(() => f.remove(), 1500);
+                }, i * 250);
+            }
+        }
+
+        function runSpaceInvaders() {
+            const colors = ['#10b981', '#ffffff', '#ef4444', '#38bdf8'];
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 6; col++) {
+                    setTimeout(() => {
+                        const inv = document.createElement('div');
+                        inv.className = 'unlock-effect';
+                        const c = colors[row % colors.length];
+                        inv.style.width = '50px'; inv.style.height = '40px';
+                        
+                        const x1 = -100;
+                        const x2 = window.innerWidth + 100;
+                        const y1 = (15 + (row * 12)) + 'vh';
+                        const y2 = (22 + (row * 12)) + 'vh';
+                        
+                        inv.style.setProperty('--x1', x1 + 'px');
+                        inv.style.setProperty('--x2', x2 + 'px');
+                        inv.style.setProperty('--y1', y1);
+                        inv.style.setProperty('--y2', y2);
+                        
+                        inv.style.animation = `invader-march 7s linear forwards`;
+                        inv.innerHTML = `<svg viewBox="0 0 11 8" fill="${c}" style="filter: drop-shadow(0 0 10px ${c})"><path d="M4 0h3v1H4zM2 1h7v1H2zM1 2h9v1H1zM0 3h2v1H0zM3 3h5v1H3zM9 3h2v1H9zM0 4h11v1H0zM2 5h1v1H2zM4 5h3v1H4zM8 5h1v1H8zM1 6h1v1H1zM3 6h1v1H3zM7 6h1v1H7zM9 6h1v1H9z"/></svg>`;
+                        document.body.appendChild(inv);
+                        setTimeout(() => inv.remove(), 7500);
+                    }, (col * 300) + (row * 1200));
+                }
+            }
+        }
+
+        function triggerAnimationsOnly() {
+            if (!unlockedWeeks[weekStarting]) return;
+            const effects = [runNeonStreamers, runGiantGhosts, runUFOMadness, runMegaFireworks, runSpaceInvaders];
+            const choice = effects[Math.floor(Math.random() * effects.length)];
+            choice();
+        }
+
+        function revealProverb(e) {
+            if (e) e.stopPropagation();
+            unlockedWeeks[weekStarting] = true;
+            localStorage.setItem('myWeeklyFocusUnlocked', JSON.stringify(unlockedWeeks));
+            
+            // Random major animation + guaranteed streamers
+            const effects = [runGiantGhosts, runUFOMadness, runMegaFireworks, runSpaceInvaders];
+            effects[Math.floor(Math.random() * effects.length)]();
+            setTimeout(runNeonStreamers, 500);
+
+            updateLockStatus();
+            showToast("VAULT UNLOCKED: WEEKLY WISDOM REVEALED!");
+        }
+
+        function updateLockStatus() {
+            const isUnlocked = unlockedWeeks[weekStarting];
+            const isReady = tasks.length > 0 && tasks.every(t => (t.checked ? t.checked.filter(c => c).length : 0) >= t.goal);
+            
+            const ph = document.getElementById('locked-placeholder');
+            const cont = document.getElementById('quote-content');
+            const icon = document.getElementById('svg-lock');
+            const btn = document.getElementById('unlock-btn');
+            const txt = document.getElementById('lock-text');
+
+            if (isUnlocked) {
+                ph.classList.add('hidden'); 
+                cont.classList.remove('hidden');
+                icon.innerHTML = '<path d="M12 15V17M6 10V7C6 3.68629 8.68629 1 12 1C15.3137 1 18 3.68629 18 7V10H19C20.1046 10 21 10.8954 21 12V21C21 22.1046 20.1046 23 19 23H5C3.89543 23 3 22.1046 3 21V12C3 10.8954 3.89543 10 5 10H16V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V10H6" />';
+                icon.classList.add('text-emerald-500'); icon.classList.remove('text-white', 'shake-ready');
+            } else {
+                ph.classList.remove('hidden'); cont.classList.add('hidden');
+                icon.innerHTML = '<path d="M12 15V17M6 10V7C6 3.68629 8.68629 1 12 1C15.3137 1 18 3.68629 18 7V10H19C20.1046 10 21 10.8954 21 12V21C21 22.1046 20.1046 23 19 23H5C3.89543 23 3 22.1046 3 21V12C3 10.8954 3.89543 10 5 10H6ZM8 10H16V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V10Z" />';
+                icon.classList.remove('text-emerald-500'); icon.classList.add('text-white');
+
+                if (isReady) {
+                    btn.classList.remove('hidden'); txt.classList.add('hidden');
+                    icon.classList.add('shake-ready');
+                } else {
+                    btn.classList.add('hidden'); txt.classList.remove('hidden');
+                    icon.classList.remove('shake-ready');
+                }
+            }
+        }
+
+        function isFutureDay(i) {
+            const now = new Date(); now.setHours(0,0,0,0);
+            const d = new Date(weekStarting); d.setDate(d.getDate() + i); d.setHours(0,0,0,0);
+            return d > now;
+        }
+
+        window.toggleCheck = (id, i) => {
+            if (isFutureDay(i)) return showToast("CANNOT LOG FUTURE ACTION");
+            const t = tasks.find(x => x.id === id);
+            if (t) {
+                if (!t.checked) t.checked = Array(7).fill(false);
+                t.checked[i] = !t.checked[i];
                 saveTasks();
             }
         };
 
-        window.addTask = function() {
-            const nameInput = document.getElementById('taskName');
-            const durationInput = document.getElementById('taskDuration');
-            const groupSelect = document.getElementById('taskGroup');
-            const timeSelect = document.getElementById('taskTime');
-            const goalInput = document.getElementById('taskGoal');
-
-            const name = nameInput.value.trim();
-            const duration = durationInput.value.trim();
-            const group = groupSelect.value;
-            const time = timeSelect.value;
-            const goal = parseInt(goalInput.value) || 1;
-
-            if (!name) return showToast("Enter a name for your habit", true);
-
-            const activeDays = [];
-            for (let i = 0; i < 7; i++) {
-                activeDays.push(document.getElementById(`day${i}`).checked);
-            }
-
-            const newTask = {
-                id: Date.now().toString(),
-                name,
-                duration,
-                group,
-                time,
-                goal,
-                activeDays,
-                checked: Array(7).fill(false),
-                createdAt: new Date().toISOString()
-            };
-
-            tasks.push(newTask);
-            saveTasks();
-            
-            nameInput.value = '';
-            durationInput.value = '';
-            showToast("Added to Focus List");
+        window.addTask = () => {
+            const n = document.getElementById('taskName').value.trim();
+            const d = document.getElementById('taskDuration').value.trim();
+            const g = document.getElementById('taskGroup').value;
+            const t = document.getElementById('taskTime').value;
+            const goal = parseInt(document.getElementById('taskGoal').value) || 1;
+            if (!n) return showToast("HABIT NAME REQUIRED");
+            const ad = []; for(let i=0; i<7; i++) ad.push(document.getElementById(`day${i}`).checked);
+            tasks.push({ id: Date.now().toString(), name: n, duration: d, group: g, time: t, goal, activeDays: ad, checked: Array(7).fill(false) });
+            saveTasks(); toggleConfig();
         };
 
-        window.deleteTask = function(id) {
-            tasks = tasks.filter(t => t.id !== id);
-            saveTasks();
-            showToast("Item Deleted");
-        };
+        window.deleteTask = id => { tasks = tasks.filter(t => t.id !== id); saveTasks(); };
 
         function renderTasks() {
-            const focusBody = document.getElementById('focusTableBody');
-            const rewardBody = document.getElementById('rewardTableBody');
-            focusBody.innerHTML = '';
-            rewardBody.innerHTML = '';
+            const fBody = document.getElementById('focusTableBody');
+            const rBody = document.getElementById('rewardTableBody');
+            fBody.innerHTML = ''; rBody.innerHTML = '';
+            
+            // Update Reward Display
+            document.getElementById('displayReward').textContent = globalReward;
 
             const timeOrder = { "Morning": 0, "Anytime": 1, "Evening": 2 };
             const timeIcons = { "Morning": "☀️", "Anytime": "🕒", "Evening": "🌙" };
 
-            const sorted = [...tasks].sort((a, b) => timeOrder[a.time] - timeOrder[b.time]);
-
-            sorted.forEach(task => {
+            [...tasks].sort((a,b) => timeOrder[a.time] - timeOrder[b.time]).forEach(task => {
                 const tr = document.createElement('tr');
-                tr.className = "group transition-all hover:bg-gray-50/80";
-
-                let rowHtml = `
-                    <td class="text-left px-8 py-5">
-                        <div class="flex flex-col gap-2">
-                            <div class="flex items-center gap-3">
-                                <span class="text-[12px] font-black uppercase text-indigo-700 bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100 flex items-center gap-2">
-                                    ${timeIcons[task.time]} ${task.time}
-                                </span>
-                                ${task.duration ? `
-                                <span class="text-[12px] font-black uppercase text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100 flex items-center gap-2">
-                                    ⏱ ${task.duration}
-                                </span>` : ''}
-                            </div>
-                            <div class="text-lg font-black text-gray-950 tracking-tight leading-none">${task.name}</div>
+                tr.className = "group hover:bg-gray-50/50 transition-all";
+                
+                let cellsHtml = `<td class="text-left px-8 py-6">
+                    <div class="flex flex-col gap-2">
+                        <div class="flex gap-2">
+                            <span class="text-[10px] font-black uppercase text-indigo-600 bg-indigo-50 px-3 py-1 rounded-md border border-indigo-100">${timeIcons[task.time]} ${task.time}</span>
+                            ${task.duration ? `<span class="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-3 py-1 rounded-md border border-emerald-100">${task.duration}</span>` : ''}
                         </div>
-                    </td>
-                    <td class="font-black text-gray-500 text-[13px]">${task.goal}x</td>
-                `;
+                        <div class="text-lg font-black text-gray-900 leading-none">${task.name}</div>
+                    </div>
+                </td>
+                <td class="font-black text-gray-400 text-lg italic">${task.goal}</td>`;
 
                 for (let i = 0; i < 7; i++) {
-                    const isActive = task.activeDays[i];
-                    const isChecked = task.checked ? task.checked[i] : false;
-
-                    if (isActive) {
-                        rowHtml += `
-                            <td>
-                                <div class="check-container no-print" onclick="toggleCheck('${task.id}', ${i})">
-                                    <div class="checkbox-box"></div>
-                                    ${isChecked ? `
-                                    <svg class="checkmark-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                    </svg>` : ''}
-                                </div>
-                                <div class="check-container hidden print:flex">
-                                    <div class="checkbox-box"></div>
-                                    ${isChecked ? `
-                                    <svg class="checkmark-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                    </svg>` : ''}
-                                </div>
-                            </td>`;
-                    } else {
-                        rowHtml += `<td class="gray-cell"></td>`;
-                    }
+                    const active = task.activeDays[i];
+                    const chk = task.checked ? task.checked[i] : false;
+                    const fut = isFutureDay(i);
+                    
+                    cellsHtml += `<td>
+                        ${active ? `
+                            <div class="check-container no-print ${fut?'disabled':''}" onclick="toggleCheck('${task.id}', ${i})">
+                                <div class="checkbox-box"></div>
+                                ${chk ? `<svg class="checkmark-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="6"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
+                            </div>
+                            <div class="check-container hidden print:flex">
+                                <div class="checkbox-box"></div>
+                                ${chk ? `<svg class="checkmark-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="6"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
+                            </div>
+                        ` : `<div class="gray-cell h-8 w-10 mx-auto opacity-30"></div>`}
+                    </td>`;
                 }
+                
+                cellsHtml += `<td class="no-print">
+                    <button onclick="deleteTask('${task.id}')" class="text-gray-200 hover:text-red-500 transition-colors p-2">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                </td>`;
 
-                rowHtml += `
-                    <td class="no-print">
-                        <button onclick="deleteTask('${task.id}')" class="text-gray-300 hover:text-red-500 p-2 rounded-xl hover:bg-red-50 transition-all active:scale-75">
-                            <svg class="h-5 w-5" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>
-                    </td>
-                `;
-
-                tr.innerHTML = rowHtml;
-                if (task.group === 'focus') focusBody.appendChild(tr);
-                else rewardBody.appendChild(tr);
+                tr.innerHTML = cellsHtml;
+                (task.group === 'focus' ? fBody : rBody).appendChild(tr);
             });
 
-            if (focusBody.children.length === 0) focusBody.innerHTML = '<tr><td colspan="10" class="py-16 text-xs font-black text-gray-300 uppercase tracking-[0.3em] italic">Foundational habits go here</td></tr>';
-            if (rewardBody.children.length === 0) rewardBody.innerHTML = '<tr><td colspan="10" class="py-16 text-xs font-black text-gray-300 uppercase tracking-[0.3em] italic">Quest rewards go here</td></tr>';
-            
-            updateLockStatus();
+            updateLockStatus(); 
+            const seed = weekStarting.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+            const quote = quoteLibrary[seed % quoteLibrary.length];
+            document.getElementById('quote-text').textContent = `"${quote.text}"`;
+            document.getElementById('quote-author').textContent = `— ${quote.author}`;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('weekStartDate').value = weekStarting;
             renderTasks();
-            displayRandomQuote();
         });
     </script>
 </body>
